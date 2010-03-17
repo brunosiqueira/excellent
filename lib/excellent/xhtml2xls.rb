@@ -2,9 +2,10 @@ class XlsCellStyle
   attr_reader :raw_style, :style
 
   ATTRIBUTES_MAP = {
-          "font-weight" => :weight,
-          "color" => :color,
-          "font-size" => :size
+    "font-weight" => :weight,
+    "color" => :color,
+    "font-size" => :size,
+    "background-color" => :pattern_fg_color
   }
 
   def initialize(style)
@@ -15,24 +16,34 @@ class XlsCellStyle
 
   def style2hsh
     attrs = @raw_style.split(';')
-    attrs.inject({}){|acc, attr| acc.merge(encode_attribute(attr))}
+    h = attrs.inject({}){|acc, attr| acc.merge(encode_attribute(attr))}
+    h.merge(:pattern=>1)
   end
 
   def encode_attribute(attribute)
     attr, value = attribute.split(':')
 
     value = case attr
-      when "color" then
-        value.to_sym
-      when "font-size" then
-        value.to_i
-      when "font-weight" then
-        value.to_sym
+    when "color" then
+      value.to_sym
+    when "background-color" then
+      value.to_sym
+    when "font-size" then
+      value.to_i
+    when "font-weight" then
+      value.to_sym
     end
 
     return Hash[attr, value].map_keys(ATTRIBUTES_MAP)
   end
+end
 
+class XlsCellMerge
+  attr_reader :merge
+  def initialize(merge)
+    return nil unless merge
+    @merge = merge.to_i
+  end
 end
 
 class XlsCell
@@ -44,14 +55,24 @@ class XlsCell
       cell.symbolize_keys!
       @data = cell[:content] || ''
       @style = XlsCellStyle.new(cell[:style])
+      @merge = XlsCellMerge.new(cell[:colspan])
     else
       @data = cell || ''
       @style = nil
+      @merge = nil
     end
+  end
+
+  def merge
+    @merge ? @merge.merge : nil
   end
 
   def style
     @style ? @style.style : nil
+  end
+
+  def style_to_hash
+    @style && @style.raw_style ? @style.style2hsh : {}
   end
 
 end
@@ -129,7 +150,16 @@ class Hsh2Xls
   end
 
   def render_cell(row_idx, cell_idx, cell)
-    @sheet.row(row_idx).set_format(cell_idx, cell.style) if cell.style
+    if cell.merge
+      merge = cell_idx +cell.merge
+      merge = cell_idx if merge < cell_idx
+      style = Spreadsheet::Format.new({:align=>:merge}.merge(cell.style_to_hash))
+      cell_idx.upto(merge) do |i|
+        @sheet.row(row_idx).set_format(i, style)
+      end
+    else
+      @sheet.row(row_idx).set_format(cell_idx, cell.style) if cell.style
+    end
     if cell.data.empty?
       @sheet[row_idx, cell_idx] = cell.data
     else
