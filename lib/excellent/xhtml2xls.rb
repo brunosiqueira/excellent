@@ -107,7 +107,7 @@ class XlsTable
 end
 
 class Hsh2Xls
-  require 'spreadsheet'
+  require 'spreadsheet' if defined? Spreadsheet::Format
   require 'xmlsimple'
 
   attr_reader :xhtml

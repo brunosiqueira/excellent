@@ -42,7 +42,9 @@ Then we need our view. Just create file named index.xls.xerb and create a simple
         <tr>
             <td></td>
         </tr>
-
+	<tr>
+	    <td colspan="2" style="background-color:blue;"> Fruits</td>
+	</tr>
         <tr>
             <td style="font-size:20px;">Name</td>
             <td>Color</td>
