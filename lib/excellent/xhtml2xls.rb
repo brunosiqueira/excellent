@@ -17,7 +17,7 @@ class XlsCellStyle
   def style2hsh
     attrs = @raw_style.split(';')
     h = attrs.inject({}){|acc, attr| acc.merge(encode_attribute(attr))}
-    h.merge(:pattern=>1)
+    h.merge(:pattern=>h.has_key?(:pattern_fg_color) ? 1 : 0)
   end
 
   def encode_attribute(attribute)

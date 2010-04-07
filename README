@@ -6,11 +6,12 @@ Currently EXCELlent (or XERB) supports
 * table, tr, td, th tags
 * table name property for naming sheet
 * font-size, font-weight and color css attributes of cells
+* colspan for td and th tags
 
 
 First things first - installation
 
-    ruby script/plugin install git://github.com/selleo/excellent.git
+    ruby script/plugin install git://github.com/bsiqueira/excellent.git
 
 EXCELlent relies on spreadsheet and xml-simple gems, so if you haven't already...
 
@@ -27,7 +28,6 @@ Then in your controller, add new respond_to format
 
         respond_to do |format|
             format.html
-            format.xml  { render :xml => @fruits }
             format.xls # Here it is !
         end
     end
@@ -59,9 +59,46 @@ Then we need our view. Just create file named index.xls.xerb and create a simple
 
     </table>
 
+To create a xls file with many worksheets, just wrap different tables inside li tags.
+The file will have as many worksheets as tables.
+
+    <ul>
+        <li>
+            <table name="Fruits">
+                <tr>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="background-color:blue;"> Fruits</td>
+                </tr>
+                <tr>
+                    <td style="font-size:20px;">Name</td>
+                    <td>Color</td>
+                </tr>
+
+                <% @fruits.each do |fruit| %>
+                    <tr>
+                        <td style="color:red;font-weight:bold;"><%= fruit[:name] %></td>
+                        <td><%= fruit[:color] %></td>
+                    </tr>
+                <% end %>
+            </table>
+        </li>
+        <li>
+            <table name="Total">
+                <tr>
+                    <td>
+                        <%= @fruits.count%> fruits
+                    </td>
+                </tr>
+            </table>
+        </li>
+    </ul>
+
 
 From now on, simple link
 
     <%= link_to 'xls', fruits_path(:format => :xls) %>
 
 will enable you to download Excel version of your table :)
+
