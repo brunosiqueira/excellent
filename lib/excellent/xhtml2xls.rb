@@ -163,7 +163,17 @@ class Hsh2Xls
     if cell.data.empty?
       @sheet[row_idx, cell_idx] = cell.data
     else
-      @sheet[row_idx, cell_idx] = cell.data.match(/[\D]/) ? cell.data : cell.data.to_i
+      @sheet[row_idx, cell_idx] = convert_data_cell(cell.data)
+    end
+  end
+
+  def convert_data_cell(data)
+    if data.match(/^[0-9]+.[0-9]+$/)
+      data.to_f
+    elsif data.match(/[\D]/)
+      data
+    else
+      data.to_i
     end
   end
 
